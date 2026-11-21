@@ -1,0 +1,11 @@
+# IDE configuration
+.idea/
+
+# Compiled binaries
+compressor
+
+# Build directories
+build/
+
+# macOS files
+.DS_Store
