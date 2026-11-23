@@ -1,60 +1,49 @@
 #include <iostream>
 #include <fstream>
 #include <array>
-
-using namespace std;
+#include <vector>
+#include <cstdint>
 
 int main() {
-
-    ifstream file("simple.txt", ios::binary);
+    std::ifstream file("simple.txt", std::ios::binary);
 
     if (!file) {
-        cout << "Error opening file" << endl;
+        std::cerr << "Error opening file\n";
         return 1;
     }
 
-    array<int, 256> frequency{};
+    std::array<std::uint64_t, 256> frequency{};
+    std::uint64_t total = 0;
 
-    char byte;
-    int count = 0;
+    // Read in large blocks instead of byte by byte
+    std::vector<char> buffer(1 << 16); // 64 KB
 
-    // Read file byte by byte
-    while (file.get(byte)) {
+    while (file) {
+        file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+        std::streamsize n = file.gcount();
 
-        // Convert byte to unsigned value
-        unsigned char value = static_cast<unsigned char>(byte);
-
-        // Display byte value
-        cout << "Byte Value: " << static_cast<int>(value) << endl;
-
-        // Increment frequency
-        frequency[value]++;
-
-        // Count total bytes
-        count++;
-    }
-
-    cout << "\nByte Frequency Analysis\n";
-    cout << "--------------------------\n";
-
-    for (int i = 0; i < 256; i++) {
-
-        if (frequency[i] > 0) {
-
-            cout << "Byte: " << i
-                 << " | Frequency: " << frequency[i];
-
-            if (i >= 32 && i <= 126) {
-                cout << " | Character: " << static_cast<char>(i);
-            }
-
-            cout << '\n';
+        for (std::streamsize i = 0; i < n; ++i) {
+            ++frequency[static_cast<unsigned char>(buffer[i])];
         }
+        total += static_cast<std::uint64_t>(n);
     }
 
-    cout << "\nTotal Bytes: " << count << '\n';
+    std::cout << "\nByte Frequency Analysis\n"
+              << "--------------------------\n";
 
-    file.close();
+    for (int i = 0; i < 256; ++i) {
+        if (frequency[i] == 0) continue;
+
+        std::cout << "Byte: " << i
+                  << " | Frequency: " << frequency[i];
+
+        if (i >= 32 && i <= 126) {
+            std::cout << " | Character: " << static_cast<char>(i);
+        }
+        std::cout << '\n';
+    }
+
+    std::cout << "\nTotal Bytes: " << total << '\n';
 
     return 0;
 }
